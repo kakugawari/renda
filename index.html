@@ -1,41 +1,83 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>アプリの雛形</title>
-<meta name="description" content="ビルドなしで動くアプリの雛形">
-<meta name="theme-color" content="#151a2e">
-<!-- ホーム画面に追加して開いたとき、時計や電池の帯の下まで画面を描く。
-     無いと iOS は帯の下からページを始め、帯を theme-color の板で塗る (画面のいちばん上が別の色になる)。
-     上の安全域は styles.css の env(safe-area-inset-top) で空けてある。
-     iOS は追加したときの設定を覚えているので、前に追加したアイコンは作り直さないと変わらない -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="れんだメーター">
+<meta name="theme-color" content="#121316">
+<title>れんだメーター</title>
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-
 <div id="app">
-  <header id="topbar">
-    <h1 class="title">アプリの雛形</h1>
-    <div class="topbar-actions">
-      <button type="button" id="btnAction" class="btn btn-primary">ためす</button>
-    </div>
+  <header>
+    <h1>れんだ<span>メーター</span></h1>
+    <div class="hbtns"><button class="ibtn" id="toHist" aria-label="きろく"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg></button><button class="ibtn" id="snd"></button></div>
   </header>
-
-  <main id="stage">
-    <p class="lead">ここにアプリを作る。</p>
-    <p class="result" id="result">—</p>
-    <p class="note">
-      ロジックは <code>src/core.js</code> に、画面は <code>src/app.js</code> に書く。<br>
-      <code>npm test</code> でロジックを、<code>npm run test:ui</code> で画面を確かめる。
-    </p>
-  </main>
+  <button id="lgchip"><span class="emb" id="cEmb"></span><span id="cName"></span><span class="lpbar"><i id="cBarL"></i></span><span class="lpnum" id="cLp"></span></button>
+  <div class="ctrl"><button id="styleBtn"></button><nav class="seg" id="modes"></nav></div>
+  <div id="pad">
+    <div id="time">10.00</div>
+    <div id="info"><span>ベスト <b id="best">-</b></span><span>SS <b id="goal">-</b></span></div>
+    <div id="count">0</div>
+    <div id="hint">タップでスタート</div>
+    <div id="target"></div>
+    <div id="bar"><i></i></div>
+  </div>
 </div>
 
-<script src="./core.js"></script>
+<div id="result" class="sheet hidden"><div class="inner">
+  <div class="rlabel" id="rMode"></div>
+  <div><div id="rRank" class="rank"></div></div>
+  <div id="rName" class="rname"></div>
+  <div class="rnum"><b id="rCount">0</b><span>回</span></div>
+  <div id="rRate" class="rsub"></div>
+  <div><span id="rNew" class="newbest">じこベスト こうしん!</span></div>
+  <div id="rNext" class="rsub"></div>
+  <div class="card"><div class="ctitle" id="rLgT">レンダリーグ</div>
+    <div id="rBanner" class="banner"></div>
+    <div class="lgrow"><span class="emb" id="rEmb"></span><b id="rTier"></b><span class="delta" id="rDelta"></span></div>
+    <div style="display:flex;align-items:center;gap:10px"><div class="lpbar"><i id="rBar"></i></div><span class="lpnum" id="rLp"></span></div>
+  </div>
+  <div class="card"><div class="ctitle">タップのはやさ(1秒あたりの回数)</div><canvas id="cBar"></canvas></div>
+  <div class="row"><button class="btn big pri" id="again">もういちど</button><button class="btn big" id="rHist">きろく</button></div>
+</div></div>
+
+<div id="hist" class="sheet hidden"><div class="inner">
+  <header><h2>きろく</h2><button class="btn" id="hClose">とじる</button></header>
+  <nav class="seg two sstyle"></nav>
+  <nav class="seg" id="hModes"></nav>
+  <div class="stats">
+    <div><small>ベスト</small><b id="sBest">-</b></div>
+    <div><small>へいきん</small><b id="sAvg">-</b></div>
+    <div><small>かいすう</small><b id="sCnt">0</b></div>
+  </div>
+  <div class="card"><div class="ctitle">さいきん30回のグラフ</div><canvas id="cHist"></canvas></div>
+  <div class="card"><div class="ctitle">しょうごうのめやす</div><div id="table"></div></div>
+  <div class="card"><div class="ctitle">さいきんのきろく</div><div id="recent"></div></div>
+  <button class="btn danger" id="hClear">この時間のきろくをけす</button>
+</div></div>
+
+<div id="league" class="sheet hidden"><div class="inner">
+  <header><h2 id="lTitle">レンダリーグ</h2><button class="btn" id="lClose">とじる</button></header>
+  <nav class="seg two sstyle"></nav>
+  <div class="card center">
+    <div class="emb big" id="lEmb"></div>
+    <div id="lName" class="rname"></div>
+    <div class="lpbar"><i id="lBar"></i></div>
+    <div id="lLp" class="lpnum"></div>
+    <div id="lNext" class="rsub" style="margin-top:4px"></div>
+  </div>
+  <div class="card"><div class="ctitle">ポイントのうつりかわり(さいきん50回)</div><canvas id="cLg"></canvas></div>
+  <div class="card"><div class="ctitle">いまのリーグでもらえるポイント</div><div id="lPts" class="ptsgrid"></div></div>
+  <div class="card"><div class="ctitle">リーグいちらん</div><div id="lLadder"></div></div>
+  <div class="note">どの時間であそんでもポイントがたまります。100ポイントで上のリーグへしょうかく、0より下がると下のリーグへこうかく。上のリーグほどきびしくなります。じこベストを出すとボーナス+5。</div>
+</div></div>
+
 <script src="./app.js"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="アプリの雛形">
-  <rect width="512" height="512" rx="108" fill="#151a2e"/>
-  <rect x="96" y="96" width="200" height="200" rx="28" fill="#4cc9f0"/>
-  <rect x="216" y="216" width="200" height="200" rx="28" fill="#ffd166"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="れんだメーター">
+  <rect width="512" height="512" rx="108" fill="#121316"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#2c2f36" stroke-width="22"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#d8ff3e" stroke-width="22" stroke-dasharray="700 943" stroke-linecap="round" transform="rotate(-90 256 256)"/>
+  <circle cx="256" cy="256" r="56" fill="#d8ff3e"/>
 </svg>
