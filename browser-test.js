@@ -188,9 +188,10 @@ async function run() {
     await desk.goto(URL);
     const apple = await desk.evaluate(() =>
       document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'));
-    if (!apple) {
-      skip('ホーム画面用のアイコンはまだ無い (PWA にするときに用意する)');
-    } else {
+    // 対象は iPhone のホーム画面から開く使い方なので、無ければとばさずに落とす
+    // (とばしにしていたら、れんだメーターでアイコンが無いまま公開した。CLAUDE.md の落とし穴)
+    ok(!!apple, 'ホーム画面用のアイコン (apple-touch-icon) の指定がある');
+    if (apple) {
       // iOS は SVG のアイコンを使えない
       ok(apple.endsWith('.png'), `ホーム画面用アイコンが PNG (${apple})`);
       const res = await desk.request.get(URL + apple.replace('./', ''));
@@ -212,11 +213,12 @@ async function run() {
       // 直したものが 1 回のリロードで出るか (キャッシュ優先だと古い画面が出る)
       const indexPath = path.join(ROOT, 'index.html');
       const original = fs.readFileSync(indexPath, 'utf8');
-      const marker = original.match(/<h1[^>]*>([^<]*)<\/h1>/);
-      fs.writeFileSync(indexPath, original.replace(marker[1], 'こうしんかくにん'));
+      // 画面を JS で描くアプリもあるので、<h1> ではなく <title> を書き換えて見る
+      const marker = original.match(/<title[^>]*>([^<]*)<\/title>/);
+      fs.writeFileSync(indexPath, original.replace(marker[0], '<title>こうしんかくにん</title>'));
       await swPage.reload();
       await swPage.waitForTimeout(400);
-      const title = await swPage.textContent('h1');
+      const title = await swPage.title();
       fs.writeFileSync(indexPath, original);
       ok(title.trim() === 'こうしんかくにん', `直したものが 1 回のリロードで出る (${title.trim()})`);
 
@@ -225,7 +227,8 @@ async function run() {
       await swCtx.setOffline(true);
       await swPage.reload().catch(() => {});
       await swPage.waitForTimeout(400);
-      ok(await swPage.evaluate(() => document.body.innerText.trim().length > 0).catch(() => false),
+      // 画面が絵だけで字が無いアプリもあるので、字の量ではなくページの名前で見る (はんにんダンスで踏んだ)
+      ok(await swPage.evaluate(() => document.title.length > 0 && document.body.children.length > 0).catch(() => false),
         'ネットにつながらなくても開ける');
       await swCtx.setOffline(false);
     }

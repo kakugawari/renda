@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { splitArtifact } = require('./import-artifact.js');
+const { splitArtifact, localRefs } = require('./import-artifact.js');
 
 const FULL = `<!doctype html>
 <html>
@@ -121,4 +121,18 @@ test('上の安全域の余白が無ければ警告する', () => {
   assert.ok(r.warnings.some((w) => w.includes('safe-area-inset')));
   const ok = splitArtifact('<style>body{padding-top:env(safe-area-inset-top)}</style><p>x</p>');
   assert.ok(!ok.warnings.some((w) => w.includes('safe-area-inset')));
+});
+
+test('ホーム画面用の PNG アイコンを指す (iOS は SVG を使えない)', () => {
+  const r = splitArtifact('<p>x</p>');
+  assert.match(r.html, /<link rel="apple-touch-icon" href="\.\/apple-touch-icon\.png">/);
+  const kept = splitArtifact('<html><head><link rel="apple-touch-icon" href="a.png"><title>t</title></head><body></body></html>');
+  assert.strictEqual((kept.html.match(/apple-touch-icon/g) || []).length, 1);
+});
+
+test('読み込んでいる手もとのファイルを拾う (人狼は manifest・アイコン・sw.js が入っていなかった)', () => {
+  const refs = localRefs(`<link rel="manifest" href="manifest.json"><link rel="icon" href="./icon-192.png">
+<script src="https://cdnjs.cloudflare.com/x.js"></script><img src="data:image/png;base64,AA">
+<a href="#top">x</a><script>navigator.serviceWorker.register('sw.js')</script>`);
+  assert.deepStrictEqual(refs.sort(), ['icon-192.png', 'manifest.json', 'sw.js']);
 });
